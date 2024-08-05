@@ -22,6 +22,10 @@
 | `poetry run flask --app app run --debug`| roda o servidor com o debugg funcionando
 | `poetry run flask --app src.app run --debug ` | roda o servidor com debugg funcionando dentro da pasta src 
 | `poetry run flask --app src.app init-db` | inicializa o banco de dados dentro da pasta src, especificamente o arquivo app |
+| `flask --app src.app db init` | 
+| `flask --app src.app db migrate -m "Initial migration"` | 
+| `flask --app src.app db upgrade` | 
+| `flask --app src.app db migrate -m "Add active attr in user."`| 
 
 
 ### Diferença entre patch e put
