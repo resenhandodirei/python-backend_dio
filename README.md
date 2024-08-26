@@ -26,6 +26,7 @@
 | `flask --app src.app db migrate -m "Initial migration"` | 
 | `flask --app src.app db upgrade` | 
 | `flask --app src.app db migrate -m "Add active attr in user."`| 
+| `poetry add 'flask-jwt-extended=*'` | download do jwt | 
 
 
 ### Diferença entre patch e put
@@ -33,3 +34,25 @@
 | :---------- | :---------------------------------- |
 | PATCH | alteração parcial |
 | PUT| você fala para o usuário que vai atualizar o objeto inteiro |
+
+### Diferença entre autenticação e autorização
+| Parâmetro     | Descrição                           |
+| :---------- | :---------------------------------- |
+| Autenticação | processo de verificar a identidade de um usuário. É feito por meio de um nome de usuário e de senha, mas também pode incluir outros métodos, como tokens ou impressões digitais. |
+| Autorização | a autorização determina quais recursos um usuário autenticado tem permissão para acessar. É sobre o que você está autorizado a fazer. |
+
+
+### O que é JWT (JSON Web Tokens)?
+É um padrão aberto (RFC 7519) que define uma maneira compacta e independente de transmitir informações de forma segura entre as partes como um objeto JSON. 
+
+#### Características do JWT
+Compacto: Pode ser enviado através de uma URL, parâmetro POST ou no cabeçalho HTTP. 
+
+Autocontido: A carga útil contém todas as informações necessárias sobre o usuário, evitando a necessidade de consultar o banco de dados mais de uma vez.
+
+### Terminal python 
+| Comando     | Descrição                           |
+| :---------- | :---------------------------------- |
+| exit() | para sair do prompt do python e voltar ao terminal |
+| quit() | para sair do prompt do python e voltar ao terminal |
+| ctrl + D | para sair do prompt do python e voltar ao terminal |

@@ -1,3 +1,7 @@
+import sys
+import os 
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from flask_migrate import Migrate
 import sqlite3
 import click
 from flask import current_app, g

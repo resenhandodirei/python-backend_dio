@@ -6,32 +6,35 @@ from datetime import datetime
 from flask_migrate import Migrate
 import sqlalchemy as sa
 import click
+import auth
 
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
+from flask_jwt_extended import JWTManager
+
 
 class Base(DeclarativeBase):
     pass
 
 db = SQLAlchemy(model_class=Base)
 migrate = Migrate()
+jwt = JWTManager()
 
 
 class User(db.Model):
     id: Mapped[int] = mapped_column(sa.Integer, primary_key=True)
     username: Mapped[str] = mapped_column(sa.String, unique=True, nullable=False)
-
     active: Mapped[bool] = mapped_column(sa.Boolean, default=True)
 
     def __repr__(self) -> str:
-        return f"User(id={self.id!r}, username={self.username!r})"
+        return f"User(id={self.id!r}, username={self.username!r}, active={self.active!r})"
 
 
 class Post(db.Model):
     id: Mapped[int] = mapped_column(sa.Integer, primary_key=True)
-    title: Mapped[str]=mapped_column(sa.String, nullable=False)
+    title: Mapped[str] = mapped_column(sa.String, nullable=False)
     body: Mapped[str] = mapped_column(sa.String, nullable=False)
-    created: Mapped[datetime] = mapped_column (sa.DateTime, server_default=sa.func.now())
+    created: Mapped[datetime] = mapped_column(sa.DateTime, server_default=sa.func.now())
     author_id: Mapped[int] = mapped_column(sa.ForeignKey('user.id'))
 
     def __repr__(self) -> str:
@@ -39,13 +42,17 @@ class Post(db.Model):
 
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
+    app.register_blueprint(auth.app, url_prefix='/auth')
+    return app
 
     # Use o diretório da instância para o banco de dados
     app.config.from_mapping(
         SECRET_KEY='dev',
         SQLALCHEMY_DATABASE_URI='sqlite:///' + os.path.join(app.instance_path, 'blog.sqlite'),
-        SQLALCHEMY_TRACK_MODIFICATIONS=False  # Desativa o rastreamento de modificações
+        SQLALCHEMY_TRACK_MODIFICATIONS=False,
+        JWT_SECRET_KEY="super-secret"
     )
+
     if test_config is None:
         app.config.from_pyfile('config.py', silent=True)
     else:
@@ -60,14 +67,17 @@ def create_app(test_config=None):
     # Registra comandos CLI
     app.cli.add_command(init_db_command)
 
-
     # Inicializa extensões
     db.init_app(app)
     migrate.init_app(app, db)
+    jwt.init_app(app)
 
+    # Registrar blueprints
     from src.controllers import user
+    from src.controllers import auth
 
     app.register_blueprint(user.app)
+    app.register_blueprint(auth.app)
 
     return app
 
@@ -78,4 +88,3 @@ def init_db_command():
     with app.app_context():
         db.create_all()
     click.echo('Banco de dados inicializado.')
-
