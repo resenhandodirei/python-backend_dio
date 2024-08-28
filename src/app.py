@@ -6,7 +6,8 @@ from datetime import datetime
 from flask_migrate import Migrate
 import sqlalchemy as sa
 import click
-import auth
+from src.controllers import auth
+
 
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
@@ -42,8 +43,6 @@ class Post(db.Model):
 
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
-    app.register_blueprint(auth.app, url_prefix='/auth')
-    return app
 
     # Use o diretório da instância para o banco de dados
     app.config.from_mapping(
@@ -80,6 +79,7 @@ def create_app(test_config=None):
     app.register_blueprint(auth.app)
 
     return app
+
 
 @click.command('init-db')
 def init_db_command():
