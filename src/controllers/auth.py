@@ -1,17 +1,20 @@
-from flask import Blueprint, request
-from http import HTTPStatus
+from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token
+from src.app import User, db
+from werkzeug.security import check_password_hash
 
-app = Blueprint('auth', __name__, url_prefix="/auth")
+auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
-@app.route('/login', methods=['POST'])
+@auth_bp.route('/login', methods=['POST'])
 def login():
-    from src.app import User, db  # Importação local para evitar circularidade
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
 
-    username = request.json.get('username', None)
-    password = request.json.get('password', None)
-    if username != 'test' or password != 'test':
-        return {'msg': 'Bad username or password'}, HTTPStatus.UNAUTHORIZED
-    
-    access_token = create_access_token(identity=username)
-    return {"access_token": access_token}
+    user = User.query.filter_by(username=username).first()
+
+    if user and check_password_hash(user.password, password):
+        access_token = create_access_token(identity=user.id)
+        return jsonify(access_token=access_token), 200
+
+    return jsonify({"msg": "Bad username or password"}), 401

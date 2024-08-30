@@ -6,10 +6,6 @@ from datetime import datetime
 from flask_migrate import Migrate
 import sqlalchemy as sa
 import click
-from src.controllers import auth
-
-
-from sqlalchemy import Integer, String
 from flask_jwt_extended import JWTManager
 
 
@@ -23,23 +19,21 @@ jwt = JWTManager()
 class Role(db.Model):
     id: Mapped[int] = mapped_column(sa.Integer, primary_key=True)
     name: Mapped[str] = mapped_column(sa.String, nullable=False)
-    user: Mapped[list['User']] = relationship(back_populates='parents')
-
+    user: Mapped[list['User']] = relationship(back_populates='role')
 
     def __repr__(self) -> str:
-        return f"Role(id={self.id!r}, name={self.name!r}, active={self.active!r})"
-
+        return f"Role(id={self.id!r}, name={self.name!r})"
 
 
 class User(db.Model):
     id: Mapped[int] = mapped_column(sa.Integer, primary_key=True)
     username: Mapped[str] = mapped_column(sa.String, unique=True, nullable=False)
-    role_id: Mapped[bool] = mapped_column(sa.ForeignKey("role.id"))
+    password: Mapped[str] = mapped_column(sa.String, nullable=False)
+    role_id: Mapped[int] = mapped_column(sa.ForeignKey("role.id"))
     role: Mapped["Role"] = relationship(back_populates='user')
 
-
     def __repr__(self) -> str:
-        return f"User(id={self.id!r}, username={self.username!r}, active={self.active!r})"
+        return f"User(id={self.id!r}, username={self.username!r})"
 
 
 class Post(db.Model):
@@ -55,12 +49,12 @@ class Post(db.Model):
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
 
-    # Use o diretório da instância para o banco de dados
+    # Configurações
     app.config.from_mapping(
         SECRET_KEY='dev',
         SQLALCHEMY_DATABASE_URI='sqlite:///' + os.path.join(app.instance_path, 'blog.sqlite'),
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
-        JWT_SECRET_KEY="super-secret"
+        JWT_SECRET_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c" 
     )
 
     if test_config is None:
@@ -68,14 +62,10 @@ def create_app(test_config=None):
     else:
         app.config.from_mapping(test_config)
 
-    # Garante que o diretório da instância exista
     try:
         os.makedirs(app.instance_path)
     except OSError:
         pass
-
-    # Registra comandos CLI
-    app.cli.add_command(init_db_command)
 
     # Inicializa extensões
     db.init_app(app)
@@ -83,11 +73,8 @@ def create_app(test_config=None):
     jwt.init_app(app)
 
     # Registrar blueprints
-    from src.controllers import user
-    from src.controllers import auth
-
-    app.register_blueprint(user.app)
-    app.register_blueprint(auth.app)
+    from src.controllers.role import role_bp
+    app.register_blueprint(role_bp)
 
     return app
 
